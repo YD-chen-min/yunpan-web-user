@@ -93,6 +93,14 @@ const routes = [
     }
   },
   {
+    path: '/logger',
+    name: 'logger',
+    component: () => import('../components/logger'),
+    meta: {
+      requireAuth: true
+    }
+  },
+  {
     path: '/',
     component: () => import('../views/Home'),
     meta: {

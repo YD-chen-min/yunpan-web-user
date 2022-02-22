@@ -64,6 +64,10 @@
           <i class="el-icon-share"></i>
           <span slot="title">下载</span>
         </el-menu-item>
+        <el-menu-item index="logger">
+          <i class="el-icon-s-order"></i>
+          <span slot="title">操作日志</span>
+        </el-menu-item>
       </el-menu>
       <el-progress
         :title="storeInfo"
@@ -92,7 +96,7 @@
           </el-dropdown-menu>
         </el-dropdown>
       </el-header>
-      <router-view></router-view>
+      <router-view @infoFlush="flushFF"></router-view>
     </el-main>
     <user-info ref="userInfo1"></user-info>
   </el-container>
@@ -134,6 +138,16 @@ export default {
         sessionStorage.removeItem("user");
         window.location.replace("/main");
       }
+    },
+    flushFF() {
+      this.ff = sessionStorage.getItem("ff");
+      let busy = parseFloat(sessionStorage.getItem("busy"));
+      let store = parseFloat(sessionStorage.getItem("store"));
+      busy = busy / 1024 / 1024 / 1024;
+      store = store / 1024 / 1024 / 1024;
+      busy = busy.toFixed(2);
+      store = store.toFixed(2);
+      this.storeInfo = "已用" + busy + "GB;  " + "总空间：" + store + "GB";
     },
   },
 };

@@ -104,7 +104,7 @@ el-icon-close"
           hidden="true"
           ref="fileName"
           unchecked
-          :value="item.name"
+          :value="i"
         />
       </div>
     </div>
@@ -182,6 +182,22 @@ export default {
       });
   },
   methods: {
+    flashUserInfo() {
+      let _this = this;
+      _this.$http
+        .get(_this.HOST + "user/get/info", {
+          params: { user: sessionStorage.getItem("user") },
+        })
+        .then((res) => {
+          if (res.body.code == 0) {
+            sessionStorage.setItem("busy", res.body.data.busy);
+            sessionStorage.setItem("store", res.body.data.store);
+            let free = (res.body.data.busy / res.body.data.store) * 100;
+            sessionStorage.setItem("ff", free.toFixed(3));
+            _this.$emit("infoFlush");
+          }
+        });
+    },
     startUpload(file) {
       let _this = this;
       let formData = new FormData();
@@ -197,7 +213,9 @@ export default {
         .then((res) => {
           _this.$message(res.body.msg);
           _this.getFileList();
+          _this.flashUserInfo();
         });
+
       return false;
     },
     getFileList() {
@@ -365,34 +383,63 @@ export default {
       let _this = this;
       if (_this.select != -1) {
         //单个文件删除
-        _this.$http
-          .get(_this.HOST + "file/deleteFiles", {
-            params: {
-              path: _this.filePath.join("/") + "/",
-              user: sessionStorage.getItem("user"),
-              files: _this.files[_this.select].name,
-            },
-          })
-          .then((res) => {
-            _this.$message(res.body.msg);
-            _this.getFileList();
-            _this.select = -1;
-            _this.isChoosed = false;
-          });
+        if (_this.files[_this.select].type == "dir") {
+          _this.$http
+            .get(_this.HOST + "file/deleteDri", {
+              params: {
+                path: _this.files[_this.select].url,
+                user: sessionStorage.getItem("user"),
+              },
+            })
+            .then((res) => {
+              _this.$message(res.body.msg);
+              _this.getFileList();
+              _this.select = -1;
+              _this.isChoosed = false;
+            });
+        } else {
+          _this.$http
+            .get(_this.HOST + "file/deleteFiles", {
+              params: {
+                path: _this.filePath.join("/") + "/",
+                user: sessionStorage.getItem("user"),
+                files: _this.files[_this.select].name,
+              },
+            })
+            .then((res) => {
+              _this.$message(res.body.msg);
+              _this.getFileList();
+              _this.select = -1;
+              _this.isChoosed = false;
+            });
+        }
       } else {
         let checkboxes = _this.$refs.fileName;
         for (let i = 0; i < checkboxes.length; i++) {
           if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(checkboxes[i].value);
+            _this.checkedFiles.push(_this.files[checkboxes[i].value]);
           }
         }
         //多个文件删除
+        let urls = [];
+        for (let i = 0; i < _this.checkedFiles.length; i++) {
+          if (_this.checkedFiles[i].type == "dir") {
+            _this.$http.get(_this.HOST + "file/deleteDri", {
+              params: {
+                path: _this.checkedFiles[i].url,
+                user: sessionStorage.getItem("user"),
+              },
+            });
+          } else {
+            urls.push(_this.checkedFiles[i].url);
+          }
+        }
         _this.$http
           .get(_this.HOST + "file/deleteFiles", {
             params: {
               path: _this.filePath.join("/") + "/",
               user: sessionStorage.getItem("user"),
-              files: _this.checkedFiles.join(";"),
+              files: urls.join(";"),
             },
           })
           .then((res) => {

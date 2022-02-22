@@ -83,7 +83,7 @@ el-icon-close"
           hidden="true"
           ref="fileName"
           unchecked
-          :value="item.url"
+          :value="i"
         />
       </div>
     </div>
@@ -242,34 +242,63 @@ export default {
       let _this = this;
       if (_this.select != -1) {
         //单个文件删除
-        _this.$http
-          .get(_this.HOST + "file/garbage/deleteFile", {
-            params: {
-              path: _this.filePath.join("/") + "/",
-              user: sessionStorage.getItem("user"),
-              files: _this.files[_this.select].name,
-            },
-          })
-          .then((res) => {
-            _this.$message(res.body.msg);
-            _this.getFileList();
-            _this.select = -1;
-            _this.isChoosed = false;
-          });
+        if (_this.files[_this.select].type == "dir") {
+          _this.$http
+            .get(_this.HOST + "file/garbage/deleteDri", {
+              params: {
+                path: _this.files[_this.select].url,
+                user: sessionStorage.getItem("user"),
+              },
+            })
+            .then((res) => {
+              _this.$message(res.body.msg);
+              _this.getFileList();
+              _this.select = -1;
+              _this.isChoosed = false;
+            });
+        } else {
+          _this.$http
+            .get(_this.HOST + "file/garbage/deleteFile", {
+              params: {
+                path: _this.filePath.join("/") + "/",
+                user: sessionStorage.getItem("user"),
+                files: _this.files[_this.select].name,
+              },
+            })
+            .then((res) => {
+              _this.$message(res.body.msg);
+              _this.getFileList();
+              _this.select = -1;
+              _this.isChoosed = false;
+            });
+        }
       } else {
         let checkboxes = _this.$refs.fileName;
         for (let i = 0; i < checkboxes.length; i++) {
           if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(checkboxes[i].value);
+            _this.checkedFiles.push(_this.files[checkboxes[i].value]);
           }
         }
         //多个文件删除
+        let urls = [];
+        for (let i = 0; i < _this.checkedFiles.length; i++) {
+          if (_this.checkedFiles[i].type == "dir") {
+            _this.$http.get(_this.HOST + "file/garbage/deleteDri", {
+              params: {
+                path: _this.checkedFiles[i].url,
+                user: sessionStorage.getItem("user"),
+              },
+            });
+          } else {
+            urls.push(_this.checkedFiles[i].url);
+          }
+        }
         _this.$http
           .get(_this.HOST + "file/garbage/deleteFiles", {
             params: {
               path: _this.filePath.join("/") + "/",
               user: sessionStorage.getItem("user"),
-              files: _this.checkedFiles.join(";"),
+              files: urls.join(";"),
             },
           })
           .then((res) => {
