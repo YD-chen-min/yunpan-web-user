@@ -16,6 +16,12 @@
         circle
         @click="loadHis"
       ></el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-download"
+        circle
+        @click="downloadLog"
+      ></el-button>
     </div>
     <el-table :data="selectedData" border style="width: 100%; height: 100%">
       <el-table-column prop="time" label="日期" width="350"> </el-table-column>
@@ -71,6 +77,15 @@ export default {
         }
       }
       this.selectedData = tableData;
+    },
+    downloadLog() {
+      let url =
+        this.HOST + "log/user/download?user=" + sessionStorage.getItem("user");
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none"; // 防止影响页面
+      iframe.style.height = 0; // 防止影响页面
+      iframe.src = url;
+      document.body.appendChild(iframe); // 这一行必须，iframe挂在到dom树上才会发请求
     },
   },
 };

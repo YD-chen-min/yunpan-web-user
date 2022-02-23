@@ -434,19 +434,21 @@ export default {
             urls.push(_this.checkedFiles[i].url);
           }
         }
-        _this.$http
-          .get(_this.HOST + "file/deleteFiles", {
-            params: {
-              path: _this.filePath.join("/") + "/",
-              user: sessionStorage.getItem("user"),
-              files: urls.join(";"),
-            },
-          })
-          .then((res) => {
-            _this.$message(res.body.msg);
-            _this.getFileList();
-            _this.isChoosed = false;
-          });
+        if (urls.length > 0) {
+          _this.$http
+            .get(_this.HOST + "file/deleteFiles", {
+              params: {
+                path: _this.filePath.join("/") + "/",
+                user: sessionStorage.getItem("user"),
+                files: urls.join(";"),
+              },
+            })
+            .then((res) => {
+              _this.$message(res.body.msg);
+              _this.getFileList();
+              _this.isChoosed = false;
+            });
+        }
       }
     },
     moveFile() {
