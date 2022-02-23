@@ -104,8 +104,20 @@ export default {
             { emulateJSON: true }
           )
           .then((res) => {
-            _this.$message(res.body.msg);
-            _this.$router.push("/login");
+            if (res.body.code == 0) {
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "success",
+              });
+              _this.$router.push("/login");
+            } else {
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "error",
+              });
+            }
           });
       } else {
         _this.$message("两次密码不一致!");

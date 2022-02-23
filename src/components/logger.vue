@@ -51,8 +51,16 @@ export default {
         },
       })
       .then((res) => {
-        _this.tableData = res.body.data;
-        _this.selectedData = res.body.data;
+        if (res.body.code == 0) {
+          _this.tableData = res.body.data;
+          _this.selectedData = res.body.data;
+        } else {
+          _this.$message({
+            showClose: true,
+            message: res.body.msg,
+            type: "error",
+          });
+        }
       });
   },
   methods: {
@@ -65,8 +73,16 @@ export default {
           },
         })
         .then((res) => {
-          _this.tableData = res.body.data;
-          _this.selectData = res.body.data;
+          if (res.body.code == 0) {
+            _this.tableData = res.body.data;
+            _this.selectData = res.body.data;
+          } else {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
+          }
         });
     },
     selectData() {

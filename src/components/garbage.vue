@@ -125,7 +125,15 @@ export default {
         },
       })
       .then((res) => {
-        _this.files = res.body.data;
+        if (res.body.code == 0) {
+          _this.files = res.body.data;
+        } else {
+          _this.$message({
+            showClose: true,
+            message: res.body.msg,
+            type: "error",
+          });
+        }
       });
   },
   methods: {
@@ -143,9 +151,21 @@ export default {
             },
           })
           .then((res) => {
-            _this.$message(res.body.msg);
+            if (res.body.code == 0) {
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "success",
+              });
+              _this.getFileList();
+            } else {
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "error",
+              });
+            }
             _this.select = -1;
-            _this.getFileList();
           });
       }
     },
@@ -166,8 +186,21 @@ export default {
           },
         })
         .then((res) => {
-          _this.$message(res.body.msg);
-          _this.getFileList();
+          if (res.body.code == 0) {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "success",
+            });
+            _this.getFileList();
+          } else {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
+          }
+
           _this.isChoosed = false;
         });
     },
@@ -182,7 +215,15 @@ export default {
           },
         })
         .then((res) => {
-          _this.files = res.body.data;
+          if (res.body.code == 0) {
+            _this.files = res.body.data;
+          } else {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
+          }
         });
     },
     selectFiles() {
@@ -252,8 +293,21 @@ export default {
               },
             })
             .then((res) => {
-              _this.$message(res.body.msg);
-              _this.getFileList();
+              if (res.body.code == 0) {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "success",
+                });
+                _this.getFileList();
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+
               _this.select = -1;
               _this.isChoosed = false;
             });
@@ -267,8 +321,21 @@ export default {
               },
             })
             .then((res) => {
-              _this.$message(res.body.msg);
-              _this.getFileList();
+              if (res.body.code == 0) {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "success",
+                });
+                _this.getFileList();
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+
               _this.select = -1;
               _this.isChoosed = false;
             });
@@ -304,8 +371,21 @@ export default {
               },
             })
             .then((res) => {
-              _this.$message(res.body.msg);
-              _this.getFileList();
+              if (res.body.code == 0) {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "success",
+                });
+                _this.getFileList();
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+
               _this.isChoosed = false;
             });
         }

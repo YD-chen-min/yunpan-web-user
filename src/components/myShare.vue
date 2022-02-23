@@ -37,7 +37,15 @@ export default {
         },
       })
       .then((res) => {
-        _this.tableData = res.body.data;
+        if (res.body.code == 0) {
+          _this.tableData = res.body.data;
+        } else {
+          _this.$message({
+            showClose: true,
+            message: res.body.msg,
+            type: "error",
+          });
+        }
       });
   },
   methods: {
@@ -50,7 +58,15 @@ export default {
           },
         })
         .then((res) => {
-          _this.tableData = res.body.data;
+          if (res.body.code == 0) {
+            _this.tableData = res.body.data;
+          } else {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
+          }
         });
     },
     handleClick(row) {
@@ -66,12 +82,20 @@ export default {
           { emulateJSON: true }
         )
         .then((res) => {
-          this.$message({
-            showClose: true,
-            message: res.body.msg,
-            type: "success",
-          });
-          _this.getShareFileList();
+          if (res.body.code == 0) {
+            this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "success",
+            });
+            _this.getShareFileList();
+          } else {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
+          }
         });
     },
   },

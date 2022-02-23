@@ -79,7 +79,11 @@ export default {
               // _this.$router.push("/main");
               window.location.replace("/main");
             } else {
-              _this.$message(res.body.msg);
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "error",
+              });
             }
           });
       }

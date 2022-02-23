@@ -111,7 +111,15 @@ export default {
         },
       })
       .then((res) => {
-        _this.files = res.body.data;
+        if (res.body.code == 0) {
+          _this.files = res.body.data;
+        } else {
+          _this.$message({
+            showClose: true,
+            message: res.body.msg,
+            type: "error",
+          });
+        }
       });
   },
   methods: {
@@ -126,7 +134,15 @@ export default {
           },
         })
         .then((res) => {
-          _this.files = res.body.data;
+          if (res.body.code == 0) {
+            _this.files = res.body.data;
+          } else {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
+          }
         });
     },
     selectFiles() {
@@ -193,7 +209,11 @@ export default {
         })
         .then((res) => {
           if (res.body.code == 1) {
-            _this.$message(res.body.msg);
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
           } else {
             _this.getFileList();
           }
@@ -270,7 +290,19 @@ export default {
             },
           })
           .then((res) => {
-            _this.$message(res.body.msg);
+            if (res.body.code == 0) {
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "success",
+              });
+            } else {
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "error",
+              });
+            }
             _this.getFileList();
             _this.select = -1;
             _this.isChoosed = false;
@@ -291,7 +323,19 @@ export default {
             },
           })
           .then((res) => {
-            _this.$message(res.body.msg);
+            if (res.body.code == 0) {
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "success",
+              });
+            } else {
+              _this.$message({
+                showClose: true,
+                message: res.body.msg,
+                type: "error",
+              });
+            }
             _this.getFileList();
             _this.isChoosed = false;
           });
@@ -317,6 +361,12 @@ export default {
               "http://127.0.0.1:8012/onlinePreview?url=" +
                 encodeURIComponent(Base64.encode(previewUrl))
             );
+          } else {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
           }
         });
     },

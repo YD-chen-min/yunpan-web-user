@@ -80,11 +80,23 @@ export default {
           { emulateJSON: true }
         )
         .then((res) => {
-          _this.$message(res.body.msg);
-          _this.dialogFormVisible = false;
-          sessionStorage.setItem("name", _this.userForm.name);
-          sessionStorage.setItem("email", _this.userForm.email);
-          sessionStorage.setItem("tel", _this.userForm.tel);
+          if (res.body.code == 0) {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "success",
+            });
+            _this.dialogFormVisible = false;
+            sessionStorage.setItem("name", _this.userForm.name);
+            sessionStorage.setItem("email", _this.userForm.email);
+            sessionStorage.setItem("tel", _this.userForm.tel);
+          } else {
+            _this.$message({
+              showClose: true,
+              message: res.body.msg,
+              type: "error",
+            });
+          }
         });
     },
   },
