@@ -22,7 +22,7 @@
           />
         </div>
         <div class="line">
-          <a href="" style="padding: 0px 50px">忘记密码?</a>
+          <a href="/resetpassword" style="padding: 0px 50px">忘记密码?</a>
           <a href="/register" style="padding: 0px 50px"> 注册</a>
         </div>
         <div class="line" style="justify-content: center">

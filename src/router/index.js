@@ -101,6 +101,12 @@ const routes = [
     }
   },
   {
+    path: '/resetpassword',
+    name: 'resetpassword',
+    component: () => import('../components/resetPassword')
+
+  },
+  {
     path: '/',
     component: () => import('../views/Home'),
     meta: {
