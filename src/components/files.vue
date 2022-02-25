@@ -2,7 +2,11 @@
   <div class="box">
     <div class="myHeader">
       <el-upload class="upload-demo" :before-upload="startUpload" multiple>
-        <el-button size="primary" icon="el-icon-upload" type="primary"
+        <el-button
+          size="primary"
+          icon="el-icon-upload"
+          type="primary"
+          action="/"
           >上传</el-button
         >
       </el-upload>
@@ -70,6 +74,11 @@ el-icon-close"
         >
       </el-breadcrumb>
     </div>
+    <el-progress
+      v-if="uploading"
+      :percentage="percentage"
+      :format="format"
+    ></el-progress>
     <div class="filePanes">
       <el-empty
         description="暂无文件"
@@ -138,6 +147,7 @@ el-icon-close"
 </template>
 
 <script>
+import axios from "axios";
 var Base64 = require("js-base64").Base64;
 export default {
   name: "Files",
@@ -164,6 +174,8 @@ export default {
       src: "http://view.xdocin.com/xdoc?_xdoc=",
       checking: false,
       // dialogFormVisible3: false,
+      percentage: 0,
+      uploading: false,
     };
   },
 
@@ -180,11 +192,6 @@ export default {
       .then((res) => {
         if (res.body.code == 0) {
           _this.files = res.body.data;
-          _this.$message({
-            showClose: true,
-            message: res.body.msg,
-            type: "success",
-          });
         } else {
           _this.$message({
             showClose: true,
@@ -211,35 +218,70 @@ export default {
           }
         });
     },
+    format(percentage) {
+      if (percentage == 100) {
+        this.uploading = false;
+        return "√";
+      } else {
+        return `${percentage}%`;
+      }
+    },
     startUpload(file) {
+      this.uploading = true;
       let _this = this;
       let formData = new FormData();
       formData.append("file", file);
       formData.append("path", _this.filePath.join("/") + "/");
       formData.append("user", sessionStorage.getItem("user"));
-      _this.$http
-        .post(_this.HOST + "file/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then((res) => {
-          if (res.body.code == 0) {
-            _this.$message({
-              showClose: true,
-              message: res.body.msg,
-              type: "success",
-            });
-            _this.getFileList();
-            _this.flashUserInfo();
-          } else {
-            _this.$message({
-              showClose: true,
-              message: res.body.msg,
-              type: "error",
-            });
-          }
-        });
+      const fn = this.uploadProgress;
+      // _this.$http
+      //   .post(_this.HOST + "file/upload", formData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //     },
+      //   })
+      //   .then((res) => {
+      //     if (res.body.code == 0) {
+      //       _this.$message({
+      //         showClose: true,
+      //         message: res.body.msg,
+      //         type: "success",
+      //       });
+      //       _this.getFileList();
+      //       _this.flashUserInfo();
+      //     } else {
+      //       _this.$message({
+      //         showClose: true,
+      //         message: res.body.msg,
+      //         type: "error",
+      //       });
+      //     }
+      //   });
+      axios({
+        method: "post",
+        url: _this.HOST + "file/upload",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        data: formData,
+        onUploadProgress: fn,
+      }).then((res) => {
+        // console.log(res);
+        if (res.data.code == 0) {
+          _this.$message({
+            showClose: true,
+            message: "上传成功",
+            type: "success",
+          });
+          _this.getFileList();
+        } else {
+          _this.$message({
+            showClose: true,
+            message: res.data.msg,
+            type: "error",
+          });
+        }
+      });
 
       return false;
     },
@@ -534,6 +576,14 @@ export default {
             });
         }
       }
+    },
+    uploadProgress(progressEvent) {
+      /*
+       * progressEvent.loaded :已上传量
+       * progressEvent.total :上传的总大小
+       */
+      const p = Math.floor((progressEvent.loaded / progressEvent.total) * 100);
+      this.percentage = p;
     },
     moveFile() {
       let nodes = this.$refs.myTree.getCheckedNodes();
