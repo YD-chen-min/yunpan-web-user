@@ -41,11 +41,7 @@
           >删除</el-button
         >
         <el-button type="primary" @click="myMove">移动</el-button>
-        <el-button
-          type="primary"
-          icon=" el-icon-share"
-          @click="shareFile"
-          v-if="!checking"
+        <el-button type="primary" icon=" el-icon-share" @click="shareFile"
           >分享</el-button
         >
         <el-button
@@ -99,7 +95,7 @@ el-icon-close"
             item.type
           "
           @click="choose(i)"
-          @dblclick="myOnlineOpen(item.url)"
+          @dblclick="myOnlineOpen(i, item.url)"
         />
         <textarea
           class="fileName"
@@ -114,6 +110,7 @@ el-icon-close"
           ref="fileName"
           unchecked
           :value="i"
+          @click="checkboxOnClick(i)"
         />
       </div>
     </div>
@@ -202,6 +199,25 @@ export default {
       });
   },
   methods: {
+    findIndex(o) {
+      let index = -1;
+      for (let i = 0; i < this.checkedFiles.length; i++) {
+        if (o.url == this.checkedFiles[i].url) {
+          index = i;
+          break;
+        }
+      }
+      return index;
+    },
+    checkboxOnClick(i) {
+      if (this.findIndex(this.files[i]) == -1) {
+        this.checkedFiles.push(this.files[i]);
+      } else {
+        let index = this.findIndex(this.files[i]);
+        this.checkedFiles.splice(index, 1);
+      }
+      // console.log(this.checkedFiles);
+    },
     flashUserInfo() {
       let _this = this;
       _this.$http
@@ -331,6 +347,7 @@ export default {
           fileNames[i].checked = false;
         }
         this.isChoosed = false;
+        this.checkedFiles = [];
       }
     },
     showAllName($event) {
@@ -396,13 +413,9 @@ export default {
       if (!this.checking) {
         let _this = this;
         let file = _this.files[i];
-        if (file.type == "dir") {
-          _this.filePath.push(file.name);
-          _this.getFileList();
-        } else {
-          _this.select = i;
-          _this.isChoosed = true;
-        }
+
+        _this.select = i;
+        _this.isChoosed = true;
       }
     },
     mygo(i) {
@@ -433,12 +446,6 @@ export default {
         link.click();
         _this.select = -1;
       } else {
-        let checkboxes = _this.$refs.fileName;
-        for (let i = 0; i < checkboxes.length; i++) {
-          if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(checkboxes[i].value);
-          }
-        }
         for (let i = 0; i < _this.checkedFiles.length; i++) {
           if (_this.checkedFiles[i].indexOf(".") == -1) {
           } else {
@@ -526,12 +533,6 @@ export default {
             });
         }
       } else {
-        let checkboxes = _this.$refs.fileName;
-        for (let i = 0; i < checkboxes.length; i++) {
-          if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(_this.files[checkboxes[i].value]);
-          }
-        }
         //多个文件删除
         let urls = [];
         for (let i = 0; i < _this.checkedFiles.length; i++) {
@@ -599,12 +600,6 @@ export default {
           _this.filePath.join("/") + "/" + _this.files[_this.select].name;
         let newPath = path + _this.files[_this.select].name;
         if (oldPath != newPath) {
-          let checkboxes = _this.$refs.fileName;
-          for (let i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked == true) {
-              _this.checkedFiles.push(checkboxes[i].value);
-            }
-          }
           if (_this.checkedFiles.length > 0) {
             for (let i = 0; i < _this.checkedFiles.length; i++) {
               newPath = path;
@@ -678,13 +673,6 @@ export default {
           _this.filePath.join("/") + "/" + _this.files[_this.select].name;
         let newPath = path + _this.files[_this.select].name;
         if (oldPath != newPath) {
-          let checkboxes = _this.$refs.fileName;
-          for (let i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked == true) {
-              _this.checkedFiles.push(checkboxes[i].value);
-            }
-          }
-
           if (_this.checkedFiles.length > 0) {
             newPath = path;
             for (let i = 0; i < _this.checkedFiles.length; i++) {
@@ -771,67 +759,33 @@ export default {
           // console.log(_this.allDir);
         });
     },
-    myOnlineOpen(url) {
+    myOnlineOpen(i, url) {
       // console.log(this.files);
       let _this = this;
-      _this.isChoosed = false;
-      _this.$http
-        .post(
-          _this.HOST + "file/online",
-          {
-            path: url,
-            user: sessionStorage.getItem("user"),
-          },
-          { emulateJSON: true }
-        )
-        .then((res) => {
-          if (res.body.code == 0) {
-            // console.log(res.body.msg);
-            let previewUrl = "http://127.0.0.1:8012/" + res.body.msg; //要预览文件的访问地址
-            // console.log(previewUrl);
-            window.open(
-              "http://127.0.0.1:8012/onlinePreview?url=" +
-                encodeURIComponent(Base64.encode(previewUrl))
-            );
-          } else {
-            _this.$message({
-              showClose: true,
-              message: res.body.msg,
-              type: "error",
-            });
-          }
-        });
-    },
-    shareFile() {
-      if (this.select == -1) {
-        if (this.checking == true) {
-          this.$message({
-            showClose: true,
-            message: "单次只能分享一个文件",
-            type: "warning",
-          });
-        }
+      let file = _this.files[i];
+      if (file.type == "dir") {
+        _this.filePath.push(file.name);
+        _this.getFileList();
       } else {
-        let url = this.files[this.select].url;
-        let _this = this;
+        _this.isChoosed = false;
         _this.$http
           .post(
-            _this.HOST + "share/file",
+            _this.HOST + "file/online",
             {
-              url: url,
+              path: url,
               user: sessionStorage.getItem("user"),
             },
             { emulateJSON: true }
           )
           .then((res) => {
             if (res.body.code == 0) {
-              url = Base64.encode(url);
-              _this.$message({
-                showClose: true,
-                message: "请复制分享链接" + url,
-                type: "success",
-                duration: 0,
-              });
+              // console.log(res.body.msg);
+              let previewUrl = "http://127.0.0.1:8012/" + res.body.msg; //要预览文件的访问地址
+              // console.log(previewUrl);
+              window.open(
+                "http://127.0.0.1:8012/onlinePreview?url=" +
+                  encodeURIComponent(Base64.encode(previewUrl))
+              );
             } else {
               _this.$message({
                 showClose: true,
@@ -840,6 +794,124 @@ export default {
               });
             }
           });
+      }
+    },
+    shareFile() {
+      if (this.select == -1) {
+        if (this.checking == true) {
+          // this.$message({
+          //   showClose: true,
+          //   message: "单次只能分享一个文件",
+          //   type: "warning",
+          // });
+          let dirs = [];
+          let files = [];
+          for (let i = 0; i < this.checkedFiles.length; i++) {
+            if (this.checkedFiles[i].type == "dir") {
+              dirs.push(this.checkedFiles[i].url);
+            } else {
+              files.push(this.checkedFiles[i].url);
+            }
+          }
+          let _this = this;
+          if (files.length > 0) {
+            _this.$http
+              .post(
+                _this.HOST + "share/file",
+                {
+                  urls: files,
+                  user: sessionStorage.getItem("user"),
+                },
+                { emulateJSON: true }
+              )
+              .then((res) => {
+                _this.$message({
+                  showClose: true,
+                  message: "分享成功",
+                  type: "success",
+                });
+              });
+          }
+          if (dirs.length > 0) {
+            _this.$http
+              .post(
+                _this.HOST + "share/dir",
+                {
+                  urls: dirs,
+                  user: sessionStorage.getItem("user"),
+                },
+                { emulateJSON: true }
+              )
+              .then((res) => {
+                _this.$message({
+                  showClose: true,
+                  message: "分享成功",
+                  type: "success",
+                });
+              });
+          }
+        }
+      } else {
+        let url = [];
+        url.push(this.files[this.select].url);
+        let type = this.files[this.select].type;
+        let _this = this;
+        if (type == "dir") {
+          _this.$http
+            .post(
+              _this.HOST + "share/dir",
+              {
+                urls: url,
+                user: sessionStorage.getItem("user"),
+              },
+              { emulateJSON: true }
+            )
+            .then((res) => {
+              if (res.body.code == 0) {
+                //0开头表示分享的是文件，1开头表示分享的是目录
+                url = Base64.encode("1" + url);
+                _this.$message({
+                  showClose: true,
+                  message: "请复制分享链接" + url,
+                  type: "success",
+                  duration: 0,
+                });
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+            });
+        } else {
+          _this.$http
+            .post(
+              _this.HOST + "share/file",
+              {
+                urls: url,
+                user: sessionStorage.getItem("user"),
+              },
+              { emulateJSON: true }
+            )
+            .then((res) => {
+              if (res.body.code == 0) {
+                url = Base64.encode("0" + url);
+                _this.$message({
+                  showClose: true,
+                  message: "请复制分享链接" + url,
+                  type: "success",
+                  duration: 0,
+                });
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+            });
+        }
       }
     },
   },
