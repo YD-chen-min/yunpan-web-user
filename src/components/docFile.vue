@@ -80,6 +80,7 @@ el-icon-close"
           ref="fileName"
           unchecked
           :value="item.name"
+          @click="checkboxOnClick(i)"
         />
       </div>
     </div>
@@ -123,6 +124,25 @@ export default {
       });
   },
   methods: {
+    findIndex(o) {
+      let index = -1;
+      for (let i = 0; i < this.checkedFiles.length; i++) {
+        if (o.url == this.checkedFiles[i].url) {
+          index = i;
+          break;
+        }
+      }
+      return index;
+    },
+    checkboxOnClick(i) {
+      if (this.findIndex(this.files[i]) == -1) {
+        this.checkedFiles.push(this.files[i]);
+      } else {
+        let index = this.findIndex(this.files[i]);
+        this.checkedFiles.splice(index, 1);
+      }
+      // console.log(this.checkedFiles);
+    },
     getFileList() {
       let _this = this;
       // console.log(_this.filePath.join("/"));
@@ -251,14 +271,13 @@ export default {
         link.click();
         _this.select = -1;
       } else {
-        let checkboxes = _this.$refs.fileName;
-        for (let i = 0; i < checkboxes.length; i++) {
-          if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(checkboxes[i].value);
+        for (let i = 0; i < _this.checkedFiles.length; i++) {
+          if (_this.checkedFiles[i].indexOf(".") == -1) {
+          } else {
             let url =
               _this.HOST +
               "file/download?path=" +
-              _this.files[i].url +
+              _this.checkedFiles[i].url +
               "&user=" +
               sessionStorage.getItem("user");
             _this.downloadFile(url);
@@ -282,63 +301,103 @@ export default {
       let _this = this;
       if (_this.select != -1) {
         //单个文件删除
-        _this.$http
-          .get(_this.HOST + "file/deleteFile", {
-            params: {
-              url: _this.files[_this.select].url,
-              user: sessionStorage.getItem("user"),
-            },
-          })
-          .then((res) => {
-            if (res.body.code == 0) {
-              _this.$message({
-                showClose: true,
-                message: res.body.msg,
-                type: "success",
-              });
-            } else {
-              _this.$message({
-                showClose: true,
-                message: res.body.msg,
-                type: "error",
-              });
-            }
-            _this.getFileList();
-            _this.select = -1;
-            _this.isChoosed = false;
-          });
+        if (_this.files[_this.select].type == "dir") {
+          _this.$http
+            .get(_this.HOST + "file/deleteDri", {
+              params: {
+                path: _this.files[_this.select].url,
+                user: sessionStorage.getItem("user"),
+              },
+            })
+            .then((res) => {
+              if (res.body.code == 0) {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "success",
+                });
+                _this.getFileList();
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+              _this.select = -1;
+              _this.isChoosed = false;
+            });
+        } else {
+          _this.$http
+            .get(_this.HOST + "file/deleteFiles", {
+              params: {
+                user: sessionStorage.getItem("user"),
+                files: _this.files[_this.select].url,
+              },
+            })
+            .then((res) => {
+              if (res.body.code == 0) {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "success",
+                });
+                _this.getFileList();
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+              _this.select = -1;
+              _this.isChoosed = false;
+            });
+        }
       } else {
-        let checkboxes = _this.$refs.fileName;
-        for (let i = 0; i < checkboxes.length; i++) {
-          if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(_this.files[i].url);
+        //多个文件删除
+        let urls = [];
+        for (let i = 0; i < _this.checkedFiles.length; i++) {
+          if (_this.checkedFiles[i].type == "dir") {
+            _this.$http.get(_this.HOST + "file/deleteDri", {
+              params: {
+                path: _this.checkedFiles[i].url,
+                user: sessionStorage.getItem("user"),
+              },
+            });
+          } else {
+            urls.push(_this.checkedFiles[i].url);
           }
         }
-        //多个文件删除
-        _this.$http
-          .get(_this.HOST + "file/deleteFile", {
-            params: {
-              url: _this.checkedFiles.join(";"),
-              user: sessionStorage.getItem("user"),
-            },
-          })
-          .then((res) => {
-            if (res.body.code == 0) {
-              _this.$message({
-                showClose: true,
-                message: res.body.msg,
-                type: "success",
-              });
-            } else {
-              _this.$message({
-                showClose: true,
-                message: res.body.msg,
-                type: "error",
-              });
-            }
-            _this.getFileList();
-            _this.isChoosed = false;
-          });
+        if (urls.length > 0) {
+          _this.$http
+            .get(_this.HOST + "file/deleteFiles", {
+              params: {
+                user: sessionStorage.getItem("user"),
+                files: urls.join(";"),
+              },
+            })
+            .then((res) => {
+              if (res.body.code == 0) {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "success",
+                });
+                _this.$message(res.body.msg);
+                _this.getFileList();
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+
+              _this.isChoosed = false;
+              _this.checkedFiles = [];
+            });
+        }
       }
     },
     myOnlineOpen(url) {

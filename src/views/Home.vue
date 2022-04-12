@@ -73,7 +73,7 @@
         :title="storeInfo"
         :text-inside="true"
         stroke-width="20"
-        :percentage="ff"
+        :percentage="parseFloat(ff)"
         status="exception"
         style="display: flex; width: 100%; height: 100%; align-self: flex-end"
       ></el-progress>
@@ -89,9 +89,7 @@
           </div>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="修改信息">修改信息</el-dropdown-item>
-            <el-dropdown-item>狮子头</el-dropdown-item>
-            <el-dropdown-item>螺蛳粉</el-dropdown-item>
-            <el-dropdown-item disabled>双皮奶</el-dropdown-item>
+            <el-dropdown-item command="修改密码">修改密码</el-dropdown-item>
             <el-dropdown-item divided command="exit">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
@@ -137,6 +135,8 @@ export default {
       } else if (command == "exit") {
         sessionStorage.removeItem("user");
         window.location.replace("/main");
+      } else if (command == "修改密码") {
+        window.location.replace("/resetpassword");
       }
     },
     flushFF() {

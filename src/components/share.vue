@@ -17,12 +17,45 @@
     <div class="box" v-if="isDir">
       <div class="myHeader">
         <el-button-group style="border-radius: 15px" v-if="isDir">
-          <el-button type="primary" icon="el-icon-download" @click="download"
+          <el-button
+            type="primary"
+            icon="el-icon-download"
+            @click="download"
+            v-if="isChoosed || checking"
             >下载</el-button
           >
-          <el-button type="primary" @click="getDirTree">转存</el-button>
-          <el-button type="primary" v-if="!checking">多选</el-button>
-          <el-button type="primary" v-if="checking">取消多选</el-button>
+          <el-button
+            type="primary"
+            @click="getDirTree"
+            v-if="isChoosed || checking"
+            >转存</el-button
+          >
+          <el-button
+            type="primary"
+            v-if="!checking"
+            @click="
+              () => {
+                checking = true;
+                selectFiles();
+              }
+            "
+            >多选</el-button
+          >
+          <el-button
+            type="primary"
+            v-if="checking || isChoosed"
+            @click="
+              () => {
+                if (checking == true) {
+                  selectFiles();
+                  checking = false;
+                }
+                isChoosed = false;
+                select = -1;
+              }
+            "
+            >取消</el-button
+          >
         </el-button-group>
       </div>
       <div class="filePath">
@@ -91,7 +124,6 @@ export default {
       HOST: "http://localhost:10001/",
       isDir: false,
       checking: false,
-      isChoosed: false,
       filePath: [],
       files: [],
       checkedFiles: [],
@@ -185,7 +217,6 @@ export default {
       if (!this.checking) {
         let _this = this;
         let file = _this.files[i];
-
         _this.select = i;
         _this.isChoosed = true;
       }
@@ -342,6 +373,28 @@ export default {
           _this.dialogFormVisible2 = true;
           // console.log(_this.allDir);
         });
+    },
+    selectFiles() {
+      let fileNames = this.$refs.fileName;
+      this.select = -1;
+
+      if (fileNames[0].hidden == true) {
+        for (let i = 0; i < fileNames.length; i++) {
+          // console.log(fileNames[i]);
+          fileNames[i].hidden = false;
+          fileNames[i].disabled = false;
+        }
+        this.isChoosed = true;
+      } else {
+        for (let i = 0; i < fileNames.length; i++) {
+          // console.log(fileNames[i]);
+          fileNames[i].hidden = true;
+          fileNames[i].disabled = true;
+          fileNames[i].checked = false;
+        }
+        this.isChoosed = false;
+        this.checkedFiles = [];
+      }
     },
   },
 };

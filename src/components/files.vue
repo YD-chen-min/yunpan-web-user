@@ -40,7 +40,9 @@
         <el-button type="primary" icon="el-icon-close" @click="myDelete"
           >删除</el-button
         >
-        <el-button type="primary" @click="myMove">移动</el-button>
+        <el-button type="primary" @click="myMove" v-if="search == ''"
+          >移动</el-button
+        >
         <el-button type="primary" icon=" el-icon-share" @click="shareFile"
           >分享</el-button
         >
@@ -62,6 +64,13 @@ el-icon-close"
           >取消</el-button
         >
       </el-button-group>
+      <el-input
+        v-model="search"
+        size="mini"
+        placeholder="输入关键字搜索"
+        style="width: 200px"
+      />
+      <el-button icon="el-icon-search" circle @click="searchFile"></el-button>
     </div>
     <div class="filePath">
       <el-breadcrumb separator-class="el-icon-arrow-right">
@@ -102,6 +111,7 @@ el-icon-close"
           :value="item.name"
           @focus="showAllName($event)"
           @blur="showShortName($event)"
+          :readonly="search != ''"
         ></textarea>
         <input
           type="checkbox"
@@ -173,6 +183,7 @@ export default {
       // dialogFormVisible3: false,
       percentage: 0,
       uploading: false,
+      search: "",
     };
   },
 
@@ -434,9 +445,7 @@ export default {
         let url =
           _this.HOST +
           "file/download?path=" +
-          _this.filePath.join("/") +
-          "/" +
-          _this.files[_this.select].name +
+          _this.files[_this.select].url +
           "&user=" +
           sessionStorage.getItem("user");
         let link = document.createElement("a");
@@ -452,9 +461,7 @@ export default {
             let url =
               _this.HOST +
               "file/download?path=" +
-              _this.filePath.join("/") +
-              "/" +
-              _this.checkedFiles[i] +
+              _this.checkedFiles[i].url +
               "&user=" +
               sessionStorage.getItem("user");
             _this.downloadFile(url);
@@ -508,9 +515,8 @@ export default {
           _this.$http
             .get(_this.HOST + "file/deleteFiles", {
               params: {
-                path: _this.filePath.join("/") + "/",
                 user: sessionStorage.getItem("user"),
-                files: _this.files[_this.select].name,
+                files: _this.files[_this.select].url,
               },
             })
             .then((res) => {
@@ -551,7 +557,6 @@ export default {
           _this.$http
             .get(_this.HOST + "file/deleteFiles", {
               params: {
-                path: _this.filePath.join("/") + "/",
                 user: sessionStorage.getItem("user"),
                 files: urls.join(";"),
               },
@@ -574,6 +579,7 @@ export default {
               }
 
               _this.isChoosed = false;
+              _this.checkedFiles = [];
             });
         }
       }
@@ -912,6 +918,22 @@ export default {
               }
             });
         }
+      }
+    },
+    searchFile() {
+      if (this.search != "") {
+        this.filePath = [];
+        let _this = this;
+        _this.$http
+          .get(_this.HOST + "file/search", {
+            params: {
+              user: sessionStorage.getItem("user"),
+              name: _this.search,
+            },
+          })
+          .then((res) => {
+            _this.files = res.body.data;
+          });
       }
     },
   },

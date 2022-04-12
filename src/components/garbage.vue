@@ -84,6 +84,7 @@ el-icon-close"
           ref="fileName"
           unchecked
           :value="i"
+          @click="checkboxOnClick(i)"
         />
       </div>
     </div>
@@ -137,6 +138,25 @@ export default {
       });
   },
   methods: {
+    findIndex(o) {
+      let index = -1;
+      for (let i = 0; i < this.checkedFiles.length; i++) {
+        if (o.url == this.checkedFiles[i].url) {
+          index = i;
+          break;
+        }
+      }
+      return index;
+    },
+    checkboxOnClick(i) {
+      if (this.findIndex(this.files[i]) == -1) {
+        this.checkedFiles.push(this.files[i]);
+      } else {
+        let index = this.findIndex(this.files[i]);
+        this.checkedFiles.splice(index, 1);
+      }
+      // console.log(this.checkedFiles);
+    },
     restoreFile() {
       if (this.select == -1) {
         this.restoreFiles();
@@ -170,13 +190,6 @@ export default {
       }
     },
     restoreFiles() {
-      debugger;
-      let checkboxes = this.$refs.fileName;
-      for (let i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].checked == true) {
-          _this.checkedFiles.push(checkboxes[i].value);
-        }
-      }
       let _this = this;
       _this.$http
         .get(_this.HOST + "restore/files", {
@@ -200,7 +213,7 @@ export default {
               type: "error",
             });
           }
-
+          _this.checkedFiles = [];
           _this.isChoosed = false;
         });
     },
@@ -341,12 +354,6 @@ export default {
             });
         }
       } else {
-        let checkboxes = _this.$refs.fileName;
-        for (let i = 0; i < checkboxes.length; i++) {
-          if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(_this.files[checkboxes[i].value]);
-          }
-        }
         //多个文件删除
         let urls = [];
         for (let i = 0; i < _this.checkedFiles.length; i++) {

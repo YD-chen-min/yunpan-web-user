@@ -79,6 +79,7 @@ el-icon-close"
           ref="fileName"
           unchecked
           :value="item.name"
+          @click="checkboxOnClick(i)"
         />
       </div>
     </div>
@@ -114,6 +115,25 @@ export default {
       });
   },
   methods: {
+    findIndex(o) {
+      let index = -1;
+      for (let i = 0; i < this.checkedFiles.length; i++) {
+        if (o.url == this.checkedFiles[i].url) {
+          index = i;
+          break;
+        }
+      }
+      return index;
+    },
+    checkboxOnClick(i) {
+      if (this.findIndex(this.files[i]) == -1) {
+        this.checkedFiles.push(this.files[i]);
+      } else {
+        let index = this.findIndex(this.files[i]);
+        this.checkedFiles.splice(index, 1);
+      }
+      // console.log(this.checkedFiles);
+    },
     getFileList() {
       let _this = this;
       // console.log(_this.filePath.join("/"));
@@ -224,14 +244,13 @@ export default {
         link.click();
         _this.select = -1;
       } else {
-        let checkboxes = _this.$refs.fileName;
-        for (let i = 0; i < checkboxes.length; i++) {
-          if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(checkboxes[i].value);
+        for (let i = 0; i < _this.checkedFiles.length; i++) {
+          if (_this.checkedFiles[i].indexOf(".") == -1) {
+          } else {
             let url =
               _this.HOST +
               "file/download?path=" +
-              _this.files[i].url +
+              _this.checkedFiles[i].url +
               "&user=" +
               sessionStorage.getItem("user");
             _this.downloadFile(url);
@@ -282,12 +301,6 @@ export default {
             _this.isChoosed = false;
           });
       } else {
-        let checkboxes = _this.$refs.fileName;
-        for (let i = 0; i < checkboxes.length; i++) {
-          if (checkboxes[i].checked == true) {
-            _this.checkedFiles.push(_this.files[i].url);
-          }
-        }
         //多个文件删除
         _this.$http
           .get(_this.HOST + "file/deleteFile", {
