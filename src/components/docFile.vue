@@ -25,7 +25,9 @@
         <el-button type="primary" icon="el-icon-close" @click="myDelete"
           >删除</el-button
         >
-        <el-button type="primary" icon=" el-icon-share">分享</el-button>
+        <el-button type="primary" icon=" el-icon-share" @click="shareFile"
+          >分享</el-button
+        >
         <el-button
           type="primary"
           icon=" 
@@ -428,6 +430,124 @@ export default {
             });
           }
         });
+    },
+    shareFile() {
+      if (this.select == -1) {
+        if (this.checking == true) {
+          // this.$message({
+          //   showClose: true,
+          //   message: "单次只能分享一个文件",
+          //   type: "warning",
+          // });
+          let dirs = [];
+          let files = [];
+          for (let i = 0; i < this.checkedFiles.length; i++) {
+            if (this.checkedFiles[i].type == "dir") {
+              dirs.push(this.checkedFiles[i].url);
+            } else {
+              files.push(this.checkedFiles[i].url);
+            }
+          }
+          let _this = this;
+          if (files.length > 0) {
+            _this.$http
+              .post(
+                _this.HOST + "share/file",
+                {
+                  urls: files,
+                  user: sessionStorage.getItem("user"),
+                },
+                { emulateJSON: true }
+              )
+              .then((res) => {
+                _this.$message({
+                  showClose: true,
+                  message: "分享成功",
+                  type: "success",
+                });
+              });
+          }
+          if (dirs.length > 0) {
+            _this.$http
+              .post(
+                _this.HOST + "share/dir",
+                {
+                  urls: dirs,
+                  user: sessionStorage.getItem("user"),
+                },
+                { emulateJSON: true }
+              )
+              .then((res) => {
+                _this.$message({
+                  showClose: true,
+                  message: "分享成功",
+                  type: "success",
+                });
+              });
+          }
+        }
+      } else {
+        let url = [];
+        url.push(this.files[this.select].url);
+        let type = this.files[this.select].type;
+        let _this = this;
+        if (type == "dir") {
+          _this.$http
+            .post(
+              _this.HOST + "share/dir",
+              {
+                urls: url,
+                user: sessionStorage.getItem("user"),
+              },
+              { emulateJSON: true }
+            )
+            .then((res) => {
+              if (res.body.code == 0) {
+                //0开头表示分享的是文件，1开头表示分享的是目录
+                url = Base64.encode("1" + url);
+                _this.$message({
+                  showClose: true,
+                  message: "请复制分享链接" + url,
+                  type: "success",
+                  duration: 0,
+                });
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+            });
+        } else {
+          _this.$http
+            .post(
+              _this.HOST + "share/file",
+              {
+                urls: url,
+                user: sessionStorage.getItem("user"),
+              },
+              { emulateJSON: true }
+            )
+            .then((res) => {
+              if (res.body.code == 0) {
+                url = Base64.encode("0" + url);
+                _this.$message({
+                  showClose: true,
+                  message: "请复制分享链接" + url,
+                  type: "success",
+                  duration: 0,
+                });
+              } else {
+                _this.$message({
+                  showClose: true,
+                  message: res.body.msg,
+                  type: "error",
+                });
+              }
+            });
+        }
+      }
     },
   },
 };
