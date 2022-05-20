@@ -1,6 +1,8 @@
 <template>
   <div style="height: 100%">
-    <login v-if="userInfo.user == null"></login>
+    <div style="height: 100%" v-if="this.userInfo.user == null">
+      <router-view></router-view>
+    </div>
     <el-container v-else style="height: 100%; border: 1px solid #eee">
       <el-aside
         style="
@@ -140,7 +142,7 @@ export default {
         this.$refs.userInfo1.dialogFormVisible = true;
       } else if (command == "exit") {
         sessionStorage.removeItem("user");
-        window.location.replace("/main");
+        window.location.replace("/login");
       } else if (command == "修改密码") {
         window.location.replace("/resetpassword");
       }

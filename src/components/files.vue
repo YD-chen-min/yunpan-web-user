@@ -184,6 +184,7 @@ export default {
       percentage: 0,
       uploading: false,
       search: "",
+      time: 1000,
     };
   },
 
@@ -261,29 +262,13 @@ export default {
       formData.append("path", _this.filePath.join("/") + "/");
       formData.append("user", sessionStorage.getItem("user"));
       const fn = this.uploadProgress;
-      // _this.$http
-      //   .post(_this.HOST + "file/upload", formData, {
-      //     headers: {
-      //       "Content-Type": "multipart/form-data",
-      //     },
-      //   })
-      //   .then((res) => {
-      //     if (res.body.code == 0) {
-      //       _this.$message({
-      //         showClose: true,
-      //         message: res.body.msg,
-      //         type: "success",
-      //       });
-      //       _this.getFileList();
-      //       _this.flashUserInfo();
-      //     } else {
-      //       _this.$message({
-      //         showClose: true,
-      //         message: res.body.msg,
-      //         type: "error",
-      //       });
-      //     }
-      //   });
+      let n1 = _this.$notify({
+        title: "上传提示",
+        message: "服务器正在处理",
+        type: "info",
+        duration: 0,
+      });
+
       axios({
         method: "post",
         url: _this.HOST + "file/upload",
@@ -309,7 +294,7 @@ export default {
           });
         }
       });
-
+      n1.close();
       return false;
     },
     getFileList() {
@@ -421,13 +406,15 @@ export default {
         });
     },
     choose(i) {
-      if (!this.checking) {
-        let _this = this;
-        let file = _this.files[i];
-
-        _this.select = i;
-        _this.isChoosed = true;
-      }
+      clearTimeout(this.timeOut);
+      this.timeOut = setTimeout(() => {
+        if (!this.checking) {
+          let _this = this;
+          let file = _this.files[i];
+          _this.select = i;
+          _this.isChoosed = true;
+        }
+      }, this.time);
     },
     mygo(i) {
       let path = [];
@@ -441,6 +428,7 @@ export default {
     download() {
       let _this = this;
       // console.log(_this.isChoosed);
+
       if (_this.select != -1) {
         let url =
           _this.HOST +
@@ -456,7 +444,7 @@ export default {
         _this.select = -1;
       } else {
         for (let i = 0; i < _this.checkedFiles.length; i++) {
-          if (_this.checkedFiles[i].indexOf(".") == -1) {
+          if (_this.checkedFiles[i].name.indexOf(".") == -1) {
           } else {
             let url =
               _this.HOST +
@@ -469,6 +457,12 @@ export default {
         }
         _this.checkedFiles = [];
       }
+
+      _this.$notify({
+        title: "下载提示",
+        message: "正在拉取文件",
+        type: "info",
+      });
     },
     downloadFile(url) {
       const iframe = document.createElement("iframe");
@@ -476,6 +470,7 @@ export default {
       iframe.style.height = 0; // 防止影响页面
       iframe.src = url;
       document.body.appendChild(iframe); // 这一行必须，iframe挂在到dom树上才会发请求
+      // iframe.click();
       // 5分钟之后删除（onload方法对于下载链接不起作用，就先抠脚一下吧）
       setTimeout(() => {
         iframe.remove();
@@ -767,6 +762,7 @@ export default {
     },
     myOnlineOpen(i, url) {
       // console.log(this.files);
+      clearTimeout(this.timeOut);
       let _this = this;
       let file = _this.files[i];
       if (file.type == "dir") {

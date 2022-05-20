@@ -108,7 +108,7 @@ const routes = [
   },
   {
     path: '/',
-    component: () => import('../views/Home'),
+    component: () => import('../components/login'),
     meta: {
       requireAuth: true
     }

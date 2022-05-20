@@ -90,6 +90,7 @@ el-icon-close"
 </template>
 
 <script>
+var Base64 = require("js-base64").Base64;
 export default {
   name: "VideoFile",
   data() {
@@ -102,6 +103,7 @@ export default {
       getFileUrl: "file/get/type",
       type: "video",
       checking: false,
+      time: 1000,
     };
   },
   created() {
@@ -224,22 +226,26 @@ export default {
         });
     },
     choose(i) {
-      if (!this.checking) {
-        let _this = this;
-        let file = _this.files[i];
-        if (file.type == "dir") {
-          _this.filePath.push(file.name);
-          _this.getFileList();
-        } else {
-          _this.select = i;
-          _this.isChoosed = true;
+      clearTimeout(this.timeOut);
+      this.timeOut = setTimeout(() => {
+        if (!this.checking) {
+          let _this = this;
+          let file = _this.files[i];
+          if (file.type == "dir") {
+            _this.filePath.push(file.name);
+            _this.getFileList();
+          } else {
+            _this.select = i;
+            _this.isChoosed = true;
+          }
         }
-      }
+      }, 200);
     },
     download() {
       let _this = this;
       // console.log(_this.isChoosed);
       // debugger
+
       if (_this.select != -1) {
         let url =
           _this.HOST +
@@ -256,7 +262,7 @@ export default {
         _this.select = -1;
       } else {
         for (let i = 0; i < _this.checkedFiles.length; i++) {
-          if (_this.checkedFiles[i].indexOf(".") == -1) {
+          if (_this.checkedFiles[i].name.indexOf(".") == -1) {
           } else {
             let url =
               _this.HOST +
@@ -269,6 +275,11 @@ export default {
         }
         _this.checkedFiles = [];
       }
+      _this.$notify({
+        title: "下载提示",
+        message: "正在拉取文件",
+        type: "info",
+      });
     },
     downloadFile(url) {
       const iframe = document.createElement("iframe");
@@ -276,7 +287,7 @@ export default {
       iframe.style.height = 0; // 防止影响页面
       iframe.src = url;
       document.body.appendChild(iframe); // 这一行必须，iframe挂在到dom树上才会发请求
-      // 5分钟之后删除（onload方法对于下载链接不起作用，就先抠脚一下吧）
+      // 5分钟之后删除
       setTimeout(() => {
         iframe.remove();
       }, 5 * 60 * 1000);
@@ -459,6 +470,7 @@ export default {
       }
     },
     myOnlineOpen(url) {
+      clearTimeout(this.timeOut);
       let _this = this;
       _this.isChoosed = false;
       _this.$http
