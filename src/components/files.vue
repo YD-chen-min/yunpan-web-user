@@ -230,22 +230,7 @@ export default {
       }
       // console.log(this.checkedFiles);
     },
-    flashUserInfo() {
-      let _this = this;
-      _this.$http
-        .get(_this.HOST + "user/get/info", {
-          params: { user: sessionStorage.getItem("user") },
-        })
-        .then((res) => {
-          if (res.body.code == 0) {
-            sessionStorage.setItem("busy", res.body.data.busy);
-            sessionStorage.setItem("store", res.body.data.store);
-            let free = (res.body.data.busy / res.body.data.store) * 100;
-            sessionStorage.setItem("ff", free.toFixed(3));
-            _this.$emit("infoFlush");
-          }
-        });
-    },
+
     format(percentage) {
       if (percentage == 100) {
         this.uploading = false;
@@ -262,12 +247,6 @@ export default {
       formData.append("path", _this.filePath.join("/") + "/");
       formData.append("user", sessionStorage.getItem("user"));
       const fn = this.uploadProgress;
-      let n1 = _this.$notify({
-        title: "上传提示",
-        message: "服务器正在处理",
-        type: "info",
-        duration: 0,
-      });
 
       axios({
         method: "post",
@@ -279,6 +258,9 @@ export default {
         onUploadProgress: fn,
       }).then((res) => {
         // console.log(res);
+        if (_this.n1 != null) {
+          _this.n1.close();
+        }
         if (res.data.code == 0) {
           _this.$message({
             showClose: true,
@@ -286,6 +268,7 @@ export default {
             type: "success",
           });
           _this.getFileList();
+          _this.updateff();
         } else {
           _this.$message({
             showClose: true,
@@ -294,7 +277,6 @@ export default {
           });
         }
       });
-      n1.close();
       return false;
     },
     getFileList() {
@@ -578,6 +560,7 @@ export default {
             });
         }
       }
+      this.updateff();
     },
     uploadProgress(progressEvent) {
       /*
@@ -586,6 +569,16 @@ export default {
        */
       const p = Math.floor((progressEvent.loaded / progressEvent.total) * 100);
       this.percentage = p;
+      if (p > 80) {
+        if (this.n1 == null) {
+          this.n1 = this.$notify({
+            title: "上传提示",
+            message: "服务器正在处理,请勿刷新页面",
+            type: "info",
+            duration: 0,
+          });
+        }
+      }
     },
     moveFile() {
       let nodes = this.$refs.myTree.getCheckedNodes();
@@ -931,6 +924,20 @@ export default {
             _this.files = res.body.data;
           });
       }
+    },
+    updateff() {
+      let _this = this;
+      _this.$http
+        .get(_this.HOST + "user/get/free", {
+          params: {
+            user: sessionStorage.getItem("user"),
+          },
+        })
+        .then((res) => {
+          let free = res.body.data;
+          sessionStorage.setItem("ff", free.toFixed(3));
+        });
+      _this.$emit("infoFlush");
     },
   },
 };

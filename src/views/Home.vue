@@ -74,7 +74,7 @@
           </el-menu-item>
         </el-menu>
         <el-progress
-          :title="storeInfo"
+          title="存储空间占比"
           :text-inside="true"
           stroke-width="20"
           :percentage="parseFloat(ff)"
@@ -123,7 +123,6 @@ export default {
       },
       ff: 0,
       HOST: "http://localhost:10001/",
-      storeInfo: "",
     };
   },
   created() {
@@ -149,13 +148,6 @@ export default {
     },
     flushFF() {
       this.ff = sessionStorage.getItem("ff");
-      let busy = parseFloat(sessionStorage.getItem("busy"));
-      let store = parseFloat(sessionStorage.getItem("store"));
-      busy = busy / 1024 / 1024 / 1024;
-      store = store / 1024 / 1024 / 1024;
-      busy = busy.toFixed(2);
-      store = store.toFixed(2);
-      this.storeInfo = "已用" + busy + "GB;  " + "总空间：" + store + "GB";
     },
   },
 };

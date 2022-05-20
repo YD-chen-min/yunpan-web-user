@@ -165,7 +165,8 @@ export default {
               message: "修改成功",
               type: "success",
             });
-            _this.$router.push("/login");
+            sessionStorage.removeItem("user");
+            window.location.replace("/login");
           } else {
             _this.$message({
               showClose: true,

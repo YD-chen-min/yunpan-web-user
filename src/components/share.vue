@@ -116,6 +116,7 @@
 
 <script>
 import { Base64 } from "js-base64";
+import axios from "axios";
 export default {
   name: "Share",
   data() {
@@ -333,6 +334,33 @@ export default {
           urls.push(this.files[this.select].url);
         }
         let _this = this;
+        _this.n1 = _this.$notify({
+          title: "转存提示",
+          message: "服务器正在处理中，请勿刷新页面",
+          type: "info",
+          duration: 0,
+        });
+        // axios({
+        //   method: "post",
+        //   url: _this.HOST + "share/save",
+        //   dataType: "json",
+        //   contentType: "application/json",
+        //   data: {
+        //     urls: urls,
+        //     user: sessionStorage.getItem("user"),
+        //     dest: path,
+        //     shareDir: _this.shareDir,
+        //   },
+        // }).then((res) => {
+        //   if (_this.n1 != null) {
+        //     _this.n1.close();
+        //   }
+        //   _this.$message({
+        //     showClose: true,
+        //     message: res.body.msg,
+        //     type: "success",
+        //   });
+        // });
         _this.$http
           .post(
             _this.HOST + "share/save",
@@ -345,6 +373,10 @@ export default {
             { emulateJSON: true }
           )
           .then((res) => {
+            if (_this.n1 != null) {
+              _this.n1.close();
+            }
+            _this.updateff();
             _this.$message({
               showClose: true,
               message: res.body.msg,
@@ -395,6 +427,20 @@ export default {
         this.isChoosed = false;
         this.checkedFiles = [];
       }
+    },
+    updateff() {
+      let _this = this;
+      _this.$http
+        .get(_this.HOST + "user/get/free", {
+          params: {
+            user: sessionStorage.getItem("user"),
+          },
+        })
+        .then((res) => {
+          let free = res.body.data;
+          sessionStorage.setItem("ff", free.toFixed(3));
+        });
+      _this.$emit("infoFlush");
     },
   },
 };
